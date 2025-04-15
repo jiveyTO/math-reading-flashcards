@@ -40,32 +40,31 @@
 </div>
 
 <script>
-    const questions = [
-        'What is 2 + 3?',
-        'What word starts with C: cat or bat?',
-        'What is 5 - 1?',
-        'Which word rhymes with log: dog or cat?',
-        'What is 4 + 4?',
-        'What letter comes after B?',
-        'What is 7 - 2?',
-        'Which word is a color: red or bed?',
-        'What is 3 + 6?',
-        'What letter comes before D?'
-    ];
+    fetch('questions.json')
+        .then(response => response.json())
+        .then(data => {
+            const questions = data.questions;
 
-    let currentQuestion = 0;
+            function nextQuestion() {
+                if (questions.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * questions.length);
+                    const question = questions.splice(randomIndex, 1)[0]; // remove the selected question
+                    document.getElementById('question').innerText = question;
+                } else {
+                    document.getElementById('question').innerText = 'Great job! You finished!';
+                }
+            }
 
-    function nextQuestion() {
-        if (currentQuestion < questions.length) {
-            document.getElementById('question').innerText = questions[currentQuestion];
-            currentQuestion++;
-        } else {
-            document.getElementById('question').innerText = 'Great job! You finished!';
-        }
-    }
+            // Make it globally accessible to the button
+            window.nextQuestion = nextQuestion;
 
-    // Initialize first question
-    nextQuestion();
+            // Load the first question
+            nextQuestion();
+        })
+        .catch(error => {
+            console.error('Error loading questions:', error);
+            document.getElementById('question').innerText = 'Error loading questions.';
+        });
 </script>
 
 </body>
