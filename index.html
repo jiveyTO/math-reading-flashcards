@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 1 Math & Reading Flashcards</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f2f2f2;
+        }
+        .card {
+            background-color: #fff;
+            padding: 2em;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .question {
+            font-size: 1.5em;
+            margin-bottom: 1em;
+        }
+        button {
+            padding: 0.5em 1em;
+            font-size: 1em;
+            margin-top: 1em;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="question" id="question">Loading...</div>
+    <button onclick="nextQuestion()">Next</button>
+</div>
+
+<script>
+    const questions = [
+        'What is 2 + 3?',
+        'What word starts with C: cat or bat?',
+        'What is 5 - 1?',
+        'Which word rhymes with log: dog or cat?',
+        'What is 4 + 4?',
+        'What letter comes after B?',
+        'What is 7 - 2?',
+        'Which word is a color: red or bed?',
+        'What is 3 + 6?',
+        'What letter comes before D?'
+    ];
+
+    let currentQuestion = 0;
+
+    function nextQuestion() {
+        if (currentQuestion < questions.length) {
+            document.getElementById('question').innerText = questions[currentQuestion];
+            currentQuestion++;
+        } else {
+            document.getElementById('question').innerText = 'Great job! You finished!';
+        }
+    }
+
+    // Initialize first question
+    nextQuestion();
+</script>
+
+</body>
+</html>
