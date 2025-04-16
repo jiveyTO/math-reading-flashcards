@@ -36,7 +36,9 @@
 
 <div class="card">
     <div class="question" id="question">Loading...</div>
-    <button onclick="nextQuestion()">Next</button>
+    <button id="rightButton" style="background-color: #4CAF50; color: white; margin-right: 1em;">Right</button>
+    <button id="wrongButton" style="background-color: #f44336; color: white;">Wrong</button>
+    <div id="score" style="font-size: 1.2em; margin-top: 1em;">Score: 0</div>
 </div>
 
 <script>
@@ -44,6 +46,7 @@
         .then(response => response.json())
         .then(data => {
             const questions = data.questions;
+            let score = 0;
 
             function nextQuestion() {
                 if (questions.length > 0) {
@@ -57,6 +60,16 @@
 
             // Make it globally accessible to the button
             window.nextQuestion = nextQuestion;
+
+            document.getElementById('rightButton').addEventListener('click', () => {
+                score++;
+                document.getElementById('score').innerText = `Score: ${score}`;
+                nextQuestion();
+            });
+
+            document.getElementById('wrongButton').addEventListener('click', () => {
+                nextQuestion();
+            });
 
             // Load the first question
             nextQuestion();
