@@ -19,6 +19,7 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             text-align: center;
+            position: relative;
         }
         .question {
             font-size: 1.5em;
@@ -38,23 +39,65 @@
     <div class="question" id="question">Loading...</div>
     <button id="rightButton" style="background-color: #4CAF50; color: white; margin-right: 1em;">Right</button>
     <button id="wrongButton" style="background-color: #f44336; color: white;">Wrong</button>
-    <div id="score" style="font-size: 1.2em; margin-top: 1em;">Score: 0</div>
+    <button id="restartButton" style="display: none; background-color: #2196F3; color: white; margin-top: 1em;">Restart</button>
+    <div style="margin-top: 1em; text-align: center;">
+        <div id="score" style="font-size: 1.2em;">Score: 0</div>
+        <div id="cardStats" style="font-size: 0.8em; color: #555;"></div>
+    </div>
 </div>
 
 <script>
+    const savedStats = localStorage.getItem('flashcardStats');
+    const stats = savedStats ? JSON.parse(savedStats) : {};
+    let currentQuestion = null;
+
     fetch('questions.json')
         .then(response => response.json())
         .then(data => {
             const questions = data.questions;
+            questions.forEach(q => {
+                if (!stats[q]) {
+                    stats[q] = { right: 0, shown: 0 };
+                }
+            });
             let score = 0;
 
             function nextQuestion() {
+                console.log(questions);
                 if (questions.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * questions.length);
-                    const question = questions.splice(randomIndex, 1)[0]; // remove the selected question
+                    // Allow questions with <50% right to appear again
+                    const eligible = [...questions];
+                    Object.entries(stats).forEach(([q, s]) => {                        
+                        const pct = s.shown > 0 ? s.right / s.shown : 1;
+                        if (pct < 0.5 && !questions.includes(q)) {
+                            eligible.push(q); // retry if under 50% and already shown
+                            console.log("Eligible question: ", q);
+                        }
+                    });
+
+                    const randomIndex = Math.floor(Math.random() * eligible.length);
+                    const question = eligible[randomIndex];
+
+                    // Remove from the original questions array if it's still there
+                    const indexInQuestions = questions.indexOf(question);
+                    if (indexInQuestions !== -1) {
+                        questions.splice(indexInQuestions, 1);
+                    }
+
                     document.getElementById('question').innerText = question;
+                    const s = stats[question];
+                    const pct = s.shown > 0 ? Math.round((s.right / s.shown) * 100) : 0;
+                    document.getElementById('cardStats').innerText = `${pct}%`;
+                    stats[question].shown++;
+                    localStorage.setItem('flashcardStats', JSON.stringify(stats));
+                    currentQuestion = question;
                 } else {
                     document.getElementById('question').innerText = 'Great job! You finished!';
+                    document.getElementById('cardStats').innerText = '';
+                    document.getElementById('rightButton').style.display = 'none';
+                    document.getElementById('wrongButton').style.display = 'none';
+                    document.getElementById('restartButton').style.display = 'inline-block';
+                    console.table(stats);
                 }
             }
 
@@ -62,13 +105,20 @@
             window.nextQuestion = nextQuestion;
 
             document.getElementById('rightButton').addEventListener('click', () => {
-                score++;
-                document.getElementById('score').innerText = `Score: ${score}`;
+                if (currentQuestion) {
+                    stats[currentQuestion].right++;
+                    localStorage.setItem('flashcardStats', JSON.stringify(stats));
+                    score++;
+                    document.getElementById('score').innerText = `Score: ${score}`;
+                }
                 nextQuestion();
             });
 
             document.getElementById('wrongButton').addEventListener('click', () => {
                 nextQuestion();
+            });
+            document.getElementById('restartButton').addEventListener('click', () => {
+                location.reload();
             });
 
             // Load the first question
