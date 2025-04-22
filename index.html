@@ -42,7 +42,7 @@
     <button id="restartButton" style="display: none; background-color: #2196F3; color: white; margin-top: 1em;">Restart</button>
     <div style="margin-top: 1em; text-align: center;">
         <div id="score" style="font-size: 1.2em;">Score: 0</div>
-        <div id="cardStats" style="font-size: 0.8em; color: #555;"></div>
+        <div id="cardStats" style="height: 24px; margin-top: 4px;"></div>
     </div>
 </div>
 
@@ -50,6 +50,22 @@
     const savedStats = localStorage.getItem('flashcardStats');
     const stats = savedStats ? JSON.parse(savedStats) : {};
     let currentQuestion = null;
+
+    function renderMinecraftRating(pct) {
+        const totalBlocks = 5;
+        const blocks = Math.round((pct / 100) * totalBlocks);
+        const container = document.getElementById('cardStats');
+        container.innerHTML = "";
+        for (let i = 0; i < blocks; i++) {
+            const img = document.createElement('img');
+            img.src = "images/minecraft_progress_block.png";
+            img.alt = "Block";
+            img.style.width = "24px";
+            img.style.height = "24px";
+            img.style.marginRight = "2px";
+            container.appendChild(img);
+        }
+    }
 
     fetch('questions.json')
         .then(response => response.json())
@@ -87,7 +103,7 @@
                     document.getElementById('question').innerText = question;
                     const s = stats[question];
                     const pct = s.shown > 0 ? Math.round((s.right / s.shown) * 100) : 0;
-                    document.getElementById('cardStats').innerText = `${pct}%`;
+                    renderMinecraftRating(pct);
                     stats[question].shown++;
                     localStorage.setItem('flashcardStats', JSON.stringify(stats));
                     currentQuestion = question;
