@@ -36,18 +36,25 @@
 <body>
 
 <div class="card">
-    <div class="question" id="question">Loading...</div>
-    <button id="rightButton" style="background-color: #4CAF50; color: white; margin-right: 1em;">Right</button>
-    <button id="wrongButton" style="background-color: #f44336; color: white;">Wrong</button>
-    <button id="restartButton" style="display: none; background-color: #2196F3; color: white; margin-top: 1em;">Restart</button>
-    <div id="prizeCard" style="display: none; margin-top: 1em;">
-        <div style="font-size: 1.4em; margin-bottom: 1em;">🎉 Congrats! You got 10 right! 🎉</div>
+    <div id="questionCard">
+        <div class="question" id="question">Loading...</div>
+        <button id="rightButton" style="background-color: #4CAF50; color: white; margin-right: 1em;">Right</button>
+        <button id="wrongButton" style="background-color: #f44336; color: white;">Wrong</button>
+        <button id="restartButton" style="display: none; background-color: #2196F3; color: white; margin-top: 1em;">Restart</button>
+    </div>
+
+    <div id="prizeCard">
+        <div style="font-size: 1.5em;">🎉 Congrats! You got 10 right! 🎉</div>
+        <div>
+            <img src="images/minecraft_prize_pickaxe.png" alt="Pickaxe Prize" style="width: 80px; height: 80px; margin-top: 15px;">
+        </div>
         <button id="continueButton" style="background-color: #4CAF50; color: white;">Continue</button>
     </div>
+    
     <div style="margin-top: 1em; text-align: center;">
-        <div id="score" style="font-size: 1.2em;">Score: 0</div>
+        <div id="score" style="font-size: 1em;">Score: 0</div>
         <div id="cardStats" style="height: 24px; margin-top: 4px;"></div>
-    </div>
+    </div>    
 </div>
 
 <script>
@@ -160,6 +167,8 @@
                 nextQuestion();
             });
 
+            // Ensure prize card is hidden on load
+            document.getElementById('prizeCard').style.display = 'none';
             // Load the first question
             nextQuestion();
         })
