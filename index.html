@@ -62,23 +62,36 @@
     const stats = savedStats ? JSON.parse(savedStats) : {};
     let currentQuestion = null;
 
+
     function renderMinecraftRating(pct) {
-        const totalBlocks = 5;
-        const blocks = Math.round((pct / 100) * totalBlocks);
         const container = document.getElementById('cardStats');
-        container.innerHTML = "";
-        for (let i = 0; i < blocks; i++) {
-            const img = document.createElement('img');
-            img.src = "images/minecraft_progress_block.png";
-            img.alt = "Block";
-            img.style.width = "24px";
-            img.style.height = "24px";
-            img.style.marginRight = "2px";
-            container.appendChild(img);
-        }
+        container.style.display = 'flex';
+        container.style.justifyContent = 'center';
+        container.innerHTML = '';
+
+        const barWidth = 100; // Width of the bar in px
+        const sliderWidth = 4; // Width of the slider in px
+
+        const bar = document.createElement('div');
+        bar.style.width = `${barWidth}px`;
+        bar.style.height = '12px';
+        bar.style.background = 'linear-gradient(to right, orange, yellow, #0080FF, #00FF00)';
+        bar.style.position = 'relative';
+        bar.style.borderRadius = '6px'; // Rounded corners
+        container.appendChild(bar);
+
+        const slider = document.createElement('div');
+        slider.style.width = `${sliderWidth}px`;
+        slider.style.height = '16px';
+        slider.style.backgroundColor = 'black';
+        slider.style.left = `${(pct / 100) * barWidth - sliderWidth / 2}px`;
+        slider.style.top = '-2px'; // To align with bar
+        slider.style.position = 'absolute';
+        bar.appendChild(slider);
     }
 
     fetch('questions.json')
+
         .then(response => response.json())
         .then(data => {
             const questions = data.questions;
