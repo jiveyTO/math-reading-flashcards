@@ -36,14 +36,25 @@
 <body>
 
 <div class="card">
-    <div class="question" id="question">Loading...</div>
-    <button id="rightButton" style="background-color: #4CAF50; color: white; margin-right: 1em;">Right</button>
-    <button id="wrongButton" style="background-color: #f44336; color: white;">Wrong</button>
-    <button id="restartButton" style="display: none; background-color: #2196F3; color: white; margin-top: 1em;">Restart</button>
-    <div style="margin-top: 1em; text-align: center;">
-        <div id="score" style="font-size: 1.2em;">Score: 0</div>
-        <div id="cardStats" style="height: 24px; margin-top: 4px;"></div>
+    <div id="questionCard">
+        <div class="question" id="question">Loading...</div>
+        <button id="rightButton" style="background-color: #4CAF50; color: white; margin-right: 1em;">Right</button>
+        <button id="wrongButton" style="background-color: #f44336; color: white;">Wrong</button>
+        <button id="restartButton" style="display: none; background-color: #2196F3; color: white; margin-top: 1em;">Restart</button>
     </div>
+
+    <div id="prizeCard">
+        <div style="font-size: 1.5em;">🎉 Congrats! You got 10 right! 🎉</div>
+        <div>
+            <img src="images/minecraft_prize_pickaxe.png" alt="Pickaxe Prize" style="width: 80px; height: 80px; margin-top: 15px;">
+        </div>
+        <button id="continueButton" style="background-color: #4CAF50; color: white;">Continue</button>
+    </div>
+    
+    <div style="margin-top: 1em; text-align: center;">
+        <div id="score" style="font-size: 1em;">Score: 0</div>
+        <div id="cardStats" style="height: 24px; margin-top: 4px;"></div>
+    </div>    
 </div>
 
 <script>
@@ -51,23 +62,36 @@
     const stats = savedStats ? JSON.parse(savedStats) : {};
     let currentQuestion = null;
 
+
     function renderMinecraftRating(pct) {
-        const totalBlocks = 5;
-        const blocks = Math.round((pct / 100) * totalBlocks);
         const container = document.getElementById('cardStats');
-        container.innerHTML = "";
-        for (let i = 0; i < blocks; i++) {
-            const img = document.createElement('img');
-            img.src = "images/minecraft_progress_block.png";
-            img.alt = "Block";
-            img.style.width = "24px";
-            img.style.height = "24px";
-            img.style.marginRight = "2px";
-            container.appendChild(img);
-        }
+        container.style.display = 'flex';
+        container.style.justifyContent = 'center';
+        container.innerHTML = '';
+
+        const barWidth = 100; // Width of the bar in px
+        const sliderWidth = 4; // Width of the slider in px
+
+        const bar = document.createElement('div');
+        bar.style.width = `${barWidth}px`;
+        bar.style.height = '12px';
+        bar.style.background = 'linear-gradient(to right, orange, yellow, #0080FF, #00FF00)';
+        bar.style.position = 'relative';
+        bar.style.borderRadius = '6px'; // Rounded corners
+        container.appendChild(bar);
+
+        const slider = document.createElement('div');
+        slider.style.width = `${sliderWidth}px`;
+        slider.style.height = '16px';
+        slider.style.backgroundColor = 'black';
+        slider.style.left = `${(pct / 100) * barWidth - sliderWidth / 2}px`;
+        slider.style.top = '-2px'; // To align with bar
+        slider.style.position = 'absolute';
+        bar.appendChild(slider);
     }
 
     fetch('questions.json')
+
         .then(response => response.json())
         .then(data => {
             const questions = data.questions;
@@ -77,17 +101,25 @@
                 }
             });
             let score = 0;
+            let prizeCounter = 0;
 
             function nextQuestion() {
-                console.log(questions);
                 if (questions.length > 0) {
+                    if (prizeCounter >= 10) {
+                        document.getElementById('question').style.display = 'none';
+                        document.getElementById('cardStats').style.display = 'none';
+                        document.getElementById('rightButton').style.display = 'none';
+                        document.getElementById('wrongButton').style.display = 'none';
+                        document.getElementById('prizeCard').style.display = 'block';
+                        prizeCounter = 0;
+                        return;
+                    }
                     // Allow questions with <50% right to appear again
                     const eligible = [...questions];
                     Object.entries(stats).forEach(([q, s]) => {                        
                         const pct = s.shown > 0 ? s.right / s.shown : 1;
                         if (pct < 0.5 && !questions.includes(q)) {
                             eligible.push(q); // retry if under 50% and already shown
-                            console.log("Eligible question: ", q);
                         }
                     });
 
@@ -125,6 +157,8 @@
                     stats[currentQuestion].right++;
                     localStorage.setItem('flashcardStats', JSON.stringify(stats));
                     score++;
+                    prizeCounter++;
+                    console.log(`Prize Counter: ${prizeCounter}`);
                     document.getElementById('score').innerText = `Score: ${score}`;
                 }
                 nextQuestion();
@@ -137,6 +171,17 @@
                 location.reload();
             });
 
+            document.getElementById('continueButton').addEventListener('click', () => {
+                document.getElementById('prizeCard').style.display = 'none';
+                document.getElementById('question').style.display = 'block';
+                document.getElementById('cardStats').style.display = 'block';
+                document.getElementById('rightButton').style.display = 'inline-block';
+                document.getElementById('wrongButton').style.display = 'inline-block';
+                nextQuestion();
+            });
+
+            // Ensure prize card is hidden on load
+            document.getElementById('prizeCard').style.display = 'none';
             // Load the first question
             nextQuestion();
         })
