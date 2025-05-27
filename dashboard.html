@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Flashcard Stats Dashboard</title>
+  <!-- Firebase App (core) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <!-- Firestore -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <h2>Flashcard Performance Dashboard</h2>
+  <div id="stats" style="font-family: sans-serif; padding: 1em;"></div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBFhwBCyr6yXLvNONf3dQUv8LGg8Un36zc",
+      authDomain: "flash-cards-b3a3f.firebaseapp.com",
+      projectId: "flash-cards-b3a3f",
+      storageBucket: "flash-cards-b3a3f.firebasestorage.app",
+      messagingSenderId: "709645186952",
+      appId: "1:709645186952:web:7e00a3392de9a0d4c4ec3d"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    async function loadStats() {
+      try {
+        console.log("✅ loadStats called");
+        const statsContainer = document.getElementById('stats');
+        const statsSnap = await db.collection("stats").get();
+        console.log("📊 statsSnap size:", statsSnap.size);
+
+        if (statsSnap.size === 0) {
+          const row = document.createElement('div');
+          row.textContent = "No stats found in Firestore.";
+          statsContainer.appendChild(row);
+          return;
+        }
+
+        const statData = [];
+
+        for (const statDoc of statsSnap.docs) {
+          const question = decodeURIComponent(statDoc.id);
+          const answersSnap = await db.collection("stats").doc(statDoc.id).collection("answers").get();
+          const total = answersSnap.size;
+          const right = answersSnap.docs.filter(d => d.data().result === "right").length;
+          const accuracy = total > 0 ? Math.round((right / total) * 100) : 100;
+
+          console.log(`${question}: ${right}/${total} (${accuracy}%)`);
+
+          statData.push({ question, right, total, accuracy });
+        }
+
+        // Filter to <50% accuracy and sort by accuracy ascending
+        const filtered = statData.filter(d => d.accuracy < 50).sort((a, b) => a.accuracy - b.accuracy);
+
+        if (filtered.length === 0) {
+          const row = document.createElement('div');
+          row.textContent = "🎉 No low-performing cards! All questions are above 50%.";
+          statsContainer.appendChild(row);
+        } else {
+          const table = document.createElement('table');
+          table.style.borderCollapse = 'collapse';
+          table.style.marginTop = '1em';
+          statsContainer.appendChild(table);
+
+          const header = document.createElement('tr');
+          ['Question', 'Right', 'Total', 'Accuracy'].forEach(text => {
+            const th = document.createElement('th');
+            th.textContent = text;
+            th.style.border = '1px solid #ccc';
+            th.style.padding = '4px 8px';
+            th.style.backgroundColor = '#f0f0f0';
+            header.appendChild(th);
+          });
+          table.appendChild(header);
+
+          for (const d of filtered) {
+            const row = document.createElement('tr');
+            [d.question, d.right, d.total, `${d.accuracy}%`].forEach(val => {
+              const td = document.createElement('td');
+              td.textContent = val;
+              td.style.border = '1px solid #ccc';
+              td.style.padding = '4px 8px';
+              row.appendChild(td);
+            });
+            table.appendChild(row);
+          }
+        }
+      } catch (error) {
+        console.error("🔥 Firestore error:", error);
+      }
+    }
+
+    loadStats();
+  </script>
+</body>
+</html>

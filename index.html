@@ -32,6 +32,33 @@
             cursor: pointer;
         }
     </style>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+      import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+      import { getFirestore, collection, addDoc, setDoc, doc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBFhwBCyr6yXLvNONf3dQUv8LGg8Un36zc",
+        authDomain: "flash-cards-b3a3f.firebaseapp.com",
+        databaseURL: "https://flash-cards-b3a3f-default-rtdb.firebaseio.com",
+        projectId: "flash-cards-b3a3f",
+        storageBucket: "flash-cards-b3a3f.firebasestorage.app",
+        messagingSenderId: "709645186952",
+        appId: "1:709645186952:web:7e00a3392de9a0d4c4ec3d"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+      const firestore = getFirestore(app);
+      window.firebaseDb = db;
+      window.firebaseRef = ref;
+      window.firebasePush = push;
+      window.firestore = firestore;
+      window.firestoreCollection = collection;
+      window.firestoreAddDoc = addDoc;
+      window.firestoreSetDoc = setDoc;
+      window.firestoreDoc = doc;
+    </script>
 </head>
 <body>
 
@@ -160,11 +187,45 @@
                     prizeCounter++;
                     console.log(`Prize Counter: ${prizeCounter}`);
                     document.getElementById('score').innerText = `Score: ${score}`;
+                    firebasePush(firebaseRef(firebaseDb, 'stats/' + encodeURIComponent(currentQuestion)), {
+                      date: new Date().toISOString(),
+                      result: "right"
+                    });
+                    firestoreSetDoc(
+                      firestoreDoc(firestore, "stats", encodeURIComponent(currentQuestion)),
+                      { created: new Date().toISOString() },
+                      { merge: true }
+                    );
+                    firestoreAddDoc(
+                      firestoreCollection(firestore, "stats", encodeURIComponent(currentQuestion), "answers"),
+                      {
+                        date: new Date().toISOString(),
+                        result: "right"
+                      }
+                    );
                 }
                 nextQuestion();
             });
 
             document.getElementById('wrongButton').addEventListener('click', () => {
+                if (currentQuestion) {
+                    firebasePush(firebaseRef(firebaseDb, 'stats/' + encodeURIComponent(currentQuestion)), {
+                      date: new Date().toISOString(),
+                      result: "wrong"
+                    });
+                    firestoreSetDoc(
+                      firestoreDoc(firestore, "stats", encodeURIComponent(currentQuestion)),
+                      { created: new Date().toISOString() },
+                      { merge: true }
+                    );
+                    firestoreAddDoc(
+                      firestoreCollection(firestore, "stats", encodeURIComponent(currentQuestion), "answers"),
+                      {
+                        date: new Date().toISOString(),
+                        result: "wrong"
+                      }
+                    );
+                }
                 nextQuestion();
             });
             document.getElementById('restartButton').addEventListener('click', () => {
