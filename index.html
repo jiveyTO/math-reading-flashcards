@@ -36,6 +36,7 @@
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
       import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
       import { getFirestore, collection, addDoc, setDoc, doc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+      import { getDocs } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBFhwBCyr6yXLvNONf3dQUv8LGg8Un36zc",
@@ -58,6 +59,7 @@
       window.firestoreAddDoc = addDoc;
       window.firestoreSetDoc = setDoc;
       window.firestoreDoc = doc;
+      window.firestoreGetDocs = getDocs;
     </script>
 </head>
 <body>
@@ -130,7 +132,7 @@
             let score = 0;
             let prizeCounter = 0;
 
-            function nextQuestion() {
+            async function nextQuestion() {
                 if (questions.length > 0) {
                     if (prizeCounter >= 10) {
                         document.getElementById('question').style.display = 'none';
@@ -160,8 +162,17 @@
                     }
 
                     document.getElementById('question').innerText = question;
-                    const s = stats[question];
-                    const pct = s.shown > 0 ? Math.round((s.right / s.shown) * 100) : 0;
+                    const answersCollection = firestoreCollection(firestore, "stats", encodeURIComponent(question), "answers");
+                    // const answersSnap = await getDocs(answersCollection);
+                    const answersSnap = await window.firestoreGetDocs(answersCollection); 
+                    let right = 0;
+                    let total = 0;
+                    answersSnap.forEach(doc => {
+                      total++;
+                      if (doc.data().result === "right") right++;
+                    });
+                    const pct = total > 0 ? Math.round((right / total) * 100) : 0;
+                    console.log(`Firestore stats for "${question}": ${right} right out of ${total}`);
                     renderMinecraftRating(pct);
                     stats[question].shown++;
                     localStorage.setItem('flashcardStats', JSON.stringify(stats));
