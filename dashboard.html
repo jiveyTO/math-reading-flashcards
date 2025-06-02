@@ -25,12 +25,14 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const isDev = location.hostname === "localhost";
+    const collectionPrefix = isDev ? "dev_stats" : "stats";
 
     async function loadStats() {
       try {
         console.log("✅ loadStats called");
         const statsContainer = document.getElementById('stats');
-        const statsSnap = await db.collection("stats").get();
+        const statsSnap = await db.collection(collectionPrefix).get();
         console.log("📊 statsSnap size:", statsSnap.size);
 
         if (statsSnap.size === 0) {
@@ -44,7 +46,7 @@
 
         for (const statDoc of statsSnap.docs) {
           const question = decodeURIComponent(statDoc.id);
-          const answersSnap = await db.collection("stats").doc(statDoc.id).collection("answers").get();
+          const answersSnap = await db.collection(collectionPrefix).doc(statDoc.id).collection("answers").get();
           const total = answersSnap.size;
           const right = answersSnap.docs.filter(d => d.data().result === "right").length;
           const accuracy = total > 0 ? Math.round((right / total) * 100) : 100;
