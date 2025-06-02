@@ -13,26 +13,42 @@
   <h2>Flashcard Performance Dashboard</h2>
   <div id="stats" style="font-family: sans-serif; padding: 1em;"></div>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBFhwBCyr6yXLvNONf3dQUv8LGg8Un36zc",
-      authDomain: "flash-cards-b3a3f.firebaseapp.com",
-      projectId: "flash-cards-b3a3f",
-      storageBucket: "flash-cards-b3a3f.firebasestorage.app",
-      messagingSenderId: "709645186952",
-      appId: "1:709645186952:web:7e00a3392de9a0d4c4ec3d"
-    };
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+  import { getFirestore, collection, getDocs, doc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+  import {
+    getAuth,
+    signInWithPopup,
+    GoogleAuthProvider,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const isDev = location.hostname === "localhost";
-    const collectionPrefix = isDev ? "dev_stats" : "stats";
+  const firebaseConfig = {
+    apiKey: "AIzaSyBFhwBCyr6yXLvNONf3dQUv8LGg8Un36zc",
+    authDomain: "flash-cards-b3a3f.firebaseapp.com",
+    databaseURL: "https://flash-cards-b3a3f-default-rtdb.firebaseio.com",
+    projectId: "flash-cards-b3a3f",
+    storageBucket: "flash-cards-b3a3f.firebasestorage.app",
+    messagingSenderId: "709645186952",
+    appId: "1:709645186952:web:7e00a3392de9a0d4c4ec3d"
+  };
 
-    async function loadStats() {
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  const isDev = location.hostname === "localhost";
+  const collectionPrefix = isDev ? "dev_stats" : "stats";
+
+  function loadStats(user) {
+    console.log("✅ User:", user.displayName);
+    const statsContainer = document.getElementById('stats');
+    statsContainer.innerHTML = `<p>✅ Signed in as: ${user.displayName}</p>`;
+
+    (async () => {
       try {
-        console.log("✅ loadStats called");
-        const statsContainer = document.getElementById('stats');
-        const statsSnap = await db.collection(collectionPrefix).get();
+        const statsSnap = await getDocs(collection(db, collectionPrefix));
         console.log("📊 statsSnap size:", statsSnap.size);
 
         if (statsSnap.size === 0) {
@@ -46,17 +62,14 @@
 
         for (const statDoc of statsSnap.docs) {
           const question = decodeURIComponent(statDoc.id);
-          const answersSnap = await db.collection(collectionPrefix).doc(statDoc.id).collection("answers").get();
+          const answersSnap = await getDocs(collection(db, `${collectionPrefix}/${statDoc.id}/answers`));
           const total = answersSnap.size;
           const right = answersSnap.docs.filter(d => d.data().result === "right").length;
           const accuracy = total > 0 ? Math.round((right / total) * 100) : 100;
 
-          console.log(`${question}: ${right}/${total} (${accuracy}%)`);
-
           statData.push({ question, right, total, accuracy });
         }
 
-        // Filter to <50% accuracy and sort by accuracy ascending
         const filtered = statData.filter(d => d.accuracy < 50).sort((a, b) => a.accuracy - b.accuracy);
 
         if (filtered.length === 0) {
@@ -94,10 +107,25 @@
         }
       } catch (error) {
         console.error("🔥 Firestore error:", error);
+        statsContainer.innerHTML += `<p style="color:red">🔥 Firestore error: ${error.message}</p>`;
       }
-    }
+    })();
+  }
 
-    loadStats();
-  </script>
+  onAuthStateChanged(auth, user => {
+    if (user) {
+      loadStats(user);
+    } else {
+      signInWithPopup(auth, provider)
+        .then(result => {
+          loadStats(result.user);
+        })
+        .catch(error => {
+          console.error("❌ Sign-in failed:", error);
+          document.getElementById('stats').textContent = "❌ Sign-in failed.";
+        });
+    }
+  });
+</script>
 </body>
 </html>
