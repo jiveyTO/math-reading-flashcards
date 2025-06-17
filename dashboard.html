@@ -10,7 +10,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <h2>Flashcard Performance Dashboard</h2>
+  <h2 id="dashboard-title">Flashcard Performance Dashboard</h2>
   <div id="stats" style="font-family: sans-serif; padding: 1em;"></div>
 
   <script type="module">
@@ -39,6 +39,8 @@
   const provider = new GoogleAuthProvider();
 
   const isDev = location.hostname === "localhost";
+  document.getElementById("dashboard-title").textContent =
+    isDev ? "Flashcard Performance Dashboard - Dev Stats" : "Flashcard Performance Dashboard";
   const collectionPrefix = isDev ? "dev_stats" : "stats";
 
   function loadStats(user) {
