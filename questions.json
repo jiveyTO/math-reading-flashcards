@@ -1,6 +1,5 @@
 {
   "questions": [
-    // Phonics - similar to 'such', 'toil', 'meet', etc.
     "Sound out this word: mush",
     "Sound out this word: pouch",
     "Sound out this word: coil",
@@ -19,8 +18,6 @@
     "Sound out this word: bash",
     "Sound out this word: such",
     "Sound out this word: toil",
-
-    // Number before/after - more variations
     "What number comes before 13?",
     "What number comes before 11?",
     "What number comes after 19?",
@@ -29,8 +26,6 @@
     "What number comes before 20?",
     "What number comes after 14?",
     "What number comes after 16?",
-
-    // New math questions
     "What is 4 + 7?",
     "What is 6 + 5?",
     "What is 14 - 6?",
@@ -39,16 +34,12 @@
     "What is 7 + 6?",
     "What is 3 + 8?",
     "What is 13 - 7?",
-
-    // New letter sequence questions
     "What letter comes after E?",
     "What letter comes before G?",
     "What letter comes after H?",
     "What letter comes before C?",
     "What letter comes after L?",
     "What letter comes before M?",
-
-    // Tricky word recognition
     "Sound out this word: push",
     "Sound out this word: bush",
     "Sound out this word: rush",
