@@ -72,7 +72,7 @@
           statData.push({ question, right, total, accuracy });
         }
 
-        const filtered = statData.filter(d => d.accuracy < 50).sort((a, b) => a.accuracy - b.accuracy);
+        const filtered = statData.filter(d => d.accuracy < 70).sort((a, b) => a.accuracy - b.accuracy);
 
         if (filtered.length === 0) {
           const row = document.createElement('div');
